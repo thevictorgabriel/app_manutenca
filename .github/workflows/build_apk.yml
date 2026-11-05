@@ -18,9 +18,10 @@ jobs:
           
       - run: flutter pub get
       
-      # Compila o APK injetando as chaves do cofre do GitHub com segurança
+      # Compila o APK ignorando a validação estrita da versão do Gradle na nuvem
       - run: |
           flutter build apk --release \
+            --android-skip-build-dependency-validation \
             --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
             --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
       
