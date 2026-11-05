@@ -1,0 +1,30 @@
+name: app_manutenca
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  supabase_flutter: ^2.15.4
+  mobile_scanner: ^7.5.0
+  flutter_dotenv: ^6.0.1
+  flutter_image_compress: ^2.5.1
+  path_provider: ^2.1.2
+  path: ^1.9.0
+  cross_file: ^0.3.5+2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env
