@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'views/home_view.dart';
+import 'views/home_view.dart'; // Certifique-se de que o caminho para sua HomeView está correto
 
 Future<void> main() async {
+  // Obrigatório para inicializar os bindings do Flutter antes do Supabase
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inicialização explícita com a URL e a Anon Key do seu projeto Supabase
   await Supabase.initialize(
-    url: 'https://uozhefyoqnblinaucmdvi.supabase.co',
-    anonKey: 'sb_publishable_llFPND0GCsq0P3p7LUXA7w_6fsdk0Fz', // Cole aqui a sua chave anon publica do Supabase
+    url: 'https://uozhefyoqnblnuucmdvi.supabase.co',
+    publishableKey: 'sb_publishable_llFPND0GCsq0P3p7LUXA7w_6fsdk0Fz',
   );
-
+  
   runApp(const MyApp());
 }
 
