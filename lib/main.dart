@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'views/login_view.dart'; // Ajuste para a sua tela inicial real
+import 'views/home_view.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Lê as variáveis injetadas via --dart-define de forma segura
+  // Lê as credenciais injetadas de forma segura pelo GitHub Actions ou ambiente local
   const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
 
   if (supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty) {
     await Supabase.initialize(
       url: supabaseUrl,
-      publishableKey: supabaseAnonKey,
+      anonKey: supabaseAnonKey,
     );
   }
 
@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
-      home: const LoginView(), // Garanta que aponta para a sua primeira tela funcional
+      home: const HomeView(), // Inicializa direto na tela principal com os 3 botões
     );
   }
 }
