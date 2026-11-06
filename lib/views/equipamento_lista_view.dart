@@ -9,8 +9,7 @@ class EquipamentoListaView extends StatefulWidget {
 }
 
 class _EquipamentoListaViewState extends State<EquipamentoListaView> {
-  final supabase = Supabase.instance.client;
-  
+  final SupabaseClient _supabase = Supabase.instance.client;
   List<dynamic> _equipamentos = [];
   List<dynamic> _equipamentosFiltrados = [];
   bool _isLoading = true;
@@ -33,7 +32,7 @@ class _EquipamentoListaViewState extends State<EquipamentoListaView> {
     try {
       setState(() => _isLoading = true);
       
-      final response = await supabase
+      final response = await _supabase
           .from('equipamentos')
           .select()
           .order('created_at', ascending: false);

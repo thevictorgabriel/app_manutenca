@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class EquipamentoCadastroView extends StatefulWidget {
@@ -14,15 +16,19 @@ class _EquipamentoCadastroViewState extends State<EquipamentoCadastroView> {
   final _codigoController = TextEditingController();
   final _descricaoController = TextEditingController();
   
+  File? _imageFile;
   bool _isLoading = false;
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  @override
-  void dispose() {
-    _nomeController.dispose();
-    _codigoController.dispose();
-    _descricaoController.dispose();
-    super.dispose();
+  Future<void> _selecionarImagem() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.camera, imageQuality: 70);
+    
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
   }
 
   Future<void> _salvarEquipamento() async {
@@ -31,28 +37,33 @@ class _EquipamentoCadastroViewState extends State<EquipamentoCadastroView> {
     setState(() => _isLoading = true);
 
     try {
+      String? imageUrl;
+
+      // Se houver imagem, faz o upload para o Storage do Supabase
+      if (_imageFile != null) {
+        final fileName = 'eq_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        await _supabase.storage.from('equipamentos-fotos').upload(fileName, _imageFile!);
+        imageUrl = _supabase.storage.from('equipamentos-fotos').getPublicUrl(fileName);
+      }
+
+      // Salva os dados na tabela 'equipamentos'
       await _supabase.from('equipamentos').insert({
         'nome': _nomeController.text.trim(),
         'codigo': _codigoController.text.trim(),
         'descricao': _descricaoController.text.trim(),
+        'imagem_url': imageUrl,
       });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Equipamento cadastrado com sucesso!'),
-            backgroundColor: Colors.green,
-          ),
+          const SnackBar(content: Text('Equipamento cadastrado com sucesso!'), backgroundColor: Colors.green),
         );
-        Navigator.pop(context); // Retorna para a tela anterior
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao cadastrar: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Erro ao salvar: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -76,42 +87,58 @@ class _EquipamentoCadastroViewState extends State<EquipamentoCadastroView> {
           key: _formKey,
           child: ListView(
             children: [
-              const Text(
-                'Novo Equipamento',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
+              // Área para foto do equipamento
+              Center(
+                child: GestureDetector(
+                  onTap: _selecionarImagem,
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue, width: 2),
+                    ),
+                    child: _imageFile != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.file(_imageFile!, fit: BoxFit.cover),
+                          )
+                        : const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.camera_alt, size: 40, color: Colors.blue),
+                              SizedBox(height: 8),
+                              Text('Tirar Foto', style: TextStyle(fontSize: 12, color: Colors.blue))
+                            ],
+                          ),
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
 
-              // Campo Nome
               TextFormField(
                 controller: _nomeController,
                 decoration: InputDecoration(
                   labelText: 'Nome do Equipamento',
                   prefixIcon: const Icon(Icons.devices),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  filled: true,
-                  fillColor: Colors.grey[100],
                 ),
-                validator: (value) => value == null || value.isEmpty ? 'Informe o nome do equipamento' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Informe o nome' : null,
               ),
               const SizedBox(height: 16),
 
-              // Campo Código / Patrimônio
               TextFormField(
                 controller: _codigoController,
                 decoration: InputDecoration(
                   labelText: 'Código / Patrimônio',
                   prefixIcon: const Icon(Icons.qr_code),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  filled: true,
-                  fillColor: Colors.grey[100],
                 ),
-                validator: (value) => value == null || value.isEmpty ? 'Informe o código do equipamento' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Informe o código' : null,
               ),
               const SizedBox(height: 16),
 
-              // Campo Descrição / Observações
               TextFormField(
                 controller: _descricaoController,
                 maxLines: 3,
@@ -119,13 +146,10 @@ class _EquipamentoCadastroViewState extends State<EquipamentoCadastroView> {
                   labelText: 'Descrição / Localização',
                   prefixIcon: const Icon(Icons.note),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  filled: true,
-                  fillColor: Colors.grey[100],
                 ),
               ),
               const SizedBox(height: 32),
 
-              // Botão Salvar
               ElevatedButton.icon(
                 onPressed: _isLoading ? null : _salvarEquipamento,
                 icon: _isLoading 
