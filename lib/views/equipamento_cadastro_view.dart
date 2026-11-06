@@ -78,7 +78,7 @@ class _EquipamentoCadastroViewState extends State<EquipamentoCadastroView> {
     setState(() => _isLoading = true);
 
     try {
-      // 1. Insere e recupera o ID gerado corretamente
+      // 1. Insere e recupera o ID gerado na tabela 'equipamentos'
       final response = await _supabase.from('equipamentos').insert({
         'nome': _nomeController.text.trim(),
         'codigo': _codigoController.text.trim(),
@@ -87,7 +87,7 @@ class _EquipamentoCadastroViewState extends State<EquipamentoCadastroView> {
 
       final equipamentoId = response['id'];
 
-      // 2. Faz o upload das fotos e vincula na tabela 'equipamento_fotos'
+      // 2. Faz o upload das fotos (se houver alguma selecionada)
       for (var imagem in _imagensSelecionadas) {
         final fileName = 'eq_${equipamentoId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
         
@@ -99,6 +99,7 @@ class _EquipamentoCadastroViewState extends State<EquipamentoCadastroView> {
         
         final imageUrl = _supabase.storage.from('equipamentos-fotos').getPublicUrl(fileName);
 
+        // Vincula na tabela 'equipamento_fotos'
         await _supabase.from('equipamento_fotos').insert({
           'equipamento_id': equipamentoId,
           'foto_url': imageUrl,
@@ -116,8 +117,8 @@ class _EquipamentoCadastroViewState extends State<EquipamentoCadastroView> {
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Erro ao Salvar'),
-            content: Text('Detalhes:\n$e'),
+            title: const Text('Erro de Conexão / Salvamento'),
+            content: Text('Não foi possível conectar ao servidor.\nVerifique se o dispositivo tem acesso à internet ou se as permissões do Android estão ativas.\n\nDetalhes:\n$e'),
             actions: [
               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))
             ],

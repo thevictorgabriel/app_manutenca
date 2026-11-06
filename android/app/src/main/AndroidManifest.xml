@@ -6,6 +6,9 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
+            android:label="app_manutenca"
+            android:name="${applicationName}"
+            android:icon="@mipmap/ic_launcher"
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
