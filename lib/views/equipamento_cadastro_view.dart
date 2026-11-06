@@ -78,16 +78,16 @@ class _EquipamentoCadastroViewState extends State<EquipamentoCadastroView> {
     setState(() => _isLoading = true);
 
     try {
-      // 1. Insere o equipamento principal na tabela 'equipamentos' e obtém o ID gerado
-      final equipamentoResponse = await _supabase.from('equipamentos').insert({
+      // 1. Insere e recupera o ID gerado corretamente
+      final response = await _supabase.from('equipamentos').insert({
         'nome': _nomeController.text.trim(),
         'codigo': _codigoController.text.trim(),
         'descricao': _descricaoController.text.trim(),
-      }).select().single();
+      }).select('id').single();
 
-      final equipamentoId = equipamentoResponse['id'];
+      final equipamentoId = response['id'];
 
-      // 2. Faz o upload das fotos e insere na tabela 'equipamento_fotos'
+      // 2. Faz o upload das fotos e vincula na tabela 'equipamento_fotos'
       for (var imagem in _imagensSelecionadas) {
         final fileName = 'eq_${equipamentoId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
         
@@ -99,7 +99,6 @@ class _EquipamentoCadastroViewState extends State<EquipamentoCadastroView> {
         
         final imageUrl = _supabase.storage.from('equipamentos-fotos').getPublicUrl(fileName);
 
-        // Insere o registro na tabela filha de fotos
         await _supabase.from('equipamento_fotos').insert({
           'equipamento_id': equipamentoId,
           'foto_url': imageUrl,
@@ -108,7 +107,7 @@ class _EquipamentoCadastroViewState extends State<EquipamentoCadastroView> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Equipamento e fotos cadastrados com sucesso!'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Equipamento cadastrado com sucesso!'), backgroundColor: Colors.green),
         );
         Navigator.pop(context);
       }
