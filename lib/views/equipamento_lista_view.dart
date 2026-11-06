@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'equipamento_detalhe_view.dart';
 
 class EquipamentoListaView extends StatefulWidget {
   const EquipamentoListaView({super.key});
@@ -46,7 +47,10 @@ class _EquipamentoListaViewState extends State<EquipamentoListaView> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao carregar equipamentos: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Erro ao carregar equipamentos: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -63,61 +67,12 @@ class _EquipamentoListaViewState extends State<EquipamentoListaView> {
     });
   }
 
-  void _mostrarOpcoesEquipamento(Map<String, dynamic> equipamento) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                equipamento['nome'] ?? 'Equipamento',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Código: ${equipamento['codigo'] ?? 'N/A'}',
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Imprimindo QR Code para: ${equipamento['nome']}')),
-                  );
-                },
-                icon: const Icon(Icons.print),
-                label: const Text('Imprimir QR Code'),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[700], foregroundColor: Colors.white),
-              ),
-              const SizedBox(height: 10),
-              OutlinedButton.icon(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close),
-                label: const Text('Fechar'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pesquisar Equipamentos'),
-        backgroundColor: Colors.blue[800],
+        title: const Text('Gerenciar Equipamentos'),
+        backgroundColor: Colors.blue[900],
         foregroundColor: Colors.white,
       ),
       body: Column(
@@ -150,14 +105,26 @@ class _EquipamentoListaViewState extends State<EquipamentoListaView> {
                               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                               elevation: 2,
                               child: ListTile(
-                                leading: const CircleAvatar(
-                                  backgroundColor: Colors.blue,
-                                  child: Icon(Icons.devices, color: Colors.white),
+                                leading: CircleAvatar(
+                                  backgroundColor: Colors.blue[800],
+                                  child: const Icon(Icons.devices, color: Colors.white),
                                 ),
-                                title: Text(eq['nome'] ?? 'Sem Nome', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                title: Text(
+                                  eq['nome'] ?? 'Sem Nome',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
                                 subtitle: Text('Código: ${eq['codigo']?.toString() ?? 'N/A'}'),
                                 trailing: const Icon(Icons.chevron_right),
-                                onTap: () => _mostrarOpcoesEquipamento(eq),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EquipamentoDetalheView(
+                                        equipamento: eq,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             );
                           },

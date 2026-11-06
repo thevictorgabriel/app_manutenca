@@ -18,17 +18,17 @@ class HomeView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Logo da Empresa Centralizada com destaque
+                // Logo da Empresa Centralizada pequena e com destaque
                 Center(
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Image.asset(
                       'assets/images/logo.jpeg',
-                      height: 80,
+                      height: 60, // Tamanho reduzido e centralizado
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -41,6 +41,7 @@ class HomeView extends StatelessWidget {
                 ),
                 const SizedBox(height: 40),
 
+                // Botão de Cadastrar
                 ElevatedButton.icon(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EquipamentoCadastroView())),
                   icon: const Icon(Icons.add_box),
@@ -54,6 +55,7 @@ class HomeView extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
+                // Botão de Escanear
                 ElevatedButton.icon(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScannerView())),
                   icon: const Icon(Icons.qr_code_scanner),
@@ -67,10 +69,11 @@ class HomeView extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
+                // Botão de Gerenciar Equipamentos (Texto atualizado)
                 ElevatedButton.icon(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EquipamentoListaView())),
                   icon: const Icon(Icons.list_alt),
-                  label: const Text('Listar e Pesquisar', style: TextStyle(fontSize: 16)),
+                  label: const Text('Gerenciar Equipamentos', style: TextStyle(fontSize: 16)),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: Colors.green[700],

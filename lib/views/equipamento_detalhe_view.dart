@@ -1,107 +1,127 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-class EquipamentoDetalheView extends StatefulWidget {
-  final String codigoEquipamento;
+class EquipamentoDetalheView extends StatelessWidget {
+  final Map<String, dynamic> equipamento;
 
-  const EquipamentoDetalheView({super.key, required this.codigoEquipamento});
-
-  @override
-  State<EquipamentoDetalheView> createState() => _EquipamentoDetalheViewState();
-}
-
-class _EquipamentoDetalheViewState extends State<EquipamentoDetalheView> {
-  bool _carregando = true;
-  Map<String, dynamic>? _equipamentoData;
-
-  @override
-  void initState() {
-    super.initState();
-    _buscarEquipamento();
-  }
-
-  Future<void> _buscarEquipamento() async {
-    try {
-      final response = await Supabase.instance.client
-          .from('equipamentos')
-          .select()
-          .eq('codigo', widget.codigoEquipamento)
-          .maybeSingle();
-
-      if (!mounted) return; // Garante que o widget ainda está ativo na tela
-
-      setState(() {
-        _equipamentoData = response;
-        _carregando = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _carregando = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao buscar equipamento: $e')),
-      );
-    }
-  }
+  const EquipamentoDetalheView({super.key, required this.equipamento});
 
   @override
   Widget build(BuildContext context) {
+    final List<dynamic> fotos = equipamento['fotos'] ?? [];
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_equipamentoData?['nome'] ?? 'Equipamento'),
-        backgroundColor: const Color(0xFF0047AB),
+        title: Text(equipamento['nome'] ?? 'Detalhes do Equipamento'),
+        backgroundColor: Colors.blue[900],
         foregroundColor: Colors.white,
       ),
-      body: _carregando
-          ? const Center(child: CircularProgressIndicator())
-          : _equipamentoData == null
-              ? const Center(child: Text('Equipamento não encontrado no banco de dados!'))
-              : Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.amber[300],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          _equipamentoData!['nome'],
-                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (fotos.isNotEmpty) ...[
+              const Text(
+                'Fotos do Equipamento',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 200,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: fotos.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 10.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          fotos[index].toString(),
+                          width: 260,
+                          height: 200,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                width: 260,
+                                height: 200,
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                              ),
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      Text(
-                        _equipamentoData!['descricao'] ?? 'Sem descrição informada.',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      const Spacer(),
-                      _botaoManutencao('Manutenção Corretiva', Colors.orange, () {}),
-                      const SizedBox(height: 12),
-                      _botaoManutencao('Manutenção Preditiva', Colors.blueAccent, () {}),
-                      const SizedBox(height: 12),
-                      _botaoManutencao('Manutenção Preventiva', Colors.green, () {}),
-                      const SizedBox(height: 30),
-                    ],
-                  ),
+                    );
+                  },
                 ),
+              ),
+              const SizedBox(height: 24),
+            ],
+            Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 3,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      equipamento['nome'] ?? 'Sem Nome',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.blue[900]),
+                    ),
+                    const Divider(height: 24),
+                    _buildInfoRow(Icons.qr_code, 'Código:', equipamento['codigo']?.toString() ?? 'N/A'),
+                    if (equipamento['setor'] != null && equipamento['setor'].toString().isNotEmpty)
+                      _buildInfoRow(Icons.business, 'Setor:', equipamento['setor'].toString()),
+                    if (equipamento['descricao'] != null && equipamento['descricao'].toString().isNotEmpty)
+                      _buildInfoRow(Icons.description, 'Descrição:', equipamento['descricao'].toString()),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue[800],
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Imprimindo QR Code de ${equipamento['nome']}...'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.print),
+                label: const Text(
+                  'Imprimir QR Code',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _botaoManutencao(String texto, Color cor, VoidCallback onPressed) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: cor,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 22, color: Colors.blue[800]),
+          const SizedBox(width: 12),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 16, color: Colors.black87))),
+        ],
       ),
-      onPressed: onPressed,
-      child: Text(texto, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
     );
   }
 }
