@@ -1,17 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class EquipamentoDetalheView extends StatelessWidget {
   final Map<String, dynamic> equipamento;
 
   const EquipamentoDetalheView({super.key, required this.equipamento});
 
+  // Função para tratar fotos vindas do Supabase (pode vir como List ou String única)
+  List<String> _obterListaFotos() {
+    final fotosData = equipamento['fotos'];
+    if (fotosData == null) return [];
+    if (fotosData is List) {
+      return fotosData.map((e) => e.toString()).toList();
+    }
+    if (fotosData is String && fotosData.isNotEmpty) {
+      return [fotosData];
+    }
+    return [];
+  }
+
   @override
   Widget build(BuildContext context) {
-    final List<dynamic> fotos = equipamento['fotos'] ?? [];
+    final fotos = _obterListaFotos();
+    final codigoEquipamento = equipamento['codigo']?.toString() ?? 'N/A';
+    final nomeEquipamento = equipamento['nome'] ?? 'Equipamento';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(equipamento['nome'] ?? 'Detalhes do Equipamento'),
+        title: Text(nomeEquipamento),
         backgroundColor: Colors.blue[900],
         foregroundColor: Colors.white,
       ),
@@ -20,6 +36,7 @@ class EquipamentoDetalheView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Galeria de Fotos do Equipamento
             if (fotos.isNotEmpty) ...[
               const Text(
                 'Fotos do Equipamento',
@@ -37,7 +54,7 @@ class EquipamentoDetalheView extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.network(
-                          fotos[index].toString(),
+                          fotos[index],
                           width: 260,
                           height: 200,
                           fit: BoxFit.cover,
@@ -56,6 +73,8 @@ class EquipamentoDetalheView extends StatelessWidget {
               ),
               const SizedBox(height: 24),
             ],
+
+            // Cartão de Informações
             Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               elevation: 3,
@@ -65,20 +84,50 @@ class EquipamentoDetalheView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      equipamento['nome'] ?? 'Sem Nome',
+                      nomeEquipamento,
                       style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.blue[900]),
                     ),
                     const Divider(height: 24),
-                    _buildInfoRow(Icons.qr_code, 'Código:', equipamento['codigo']?.toString() ?? 'N/A'),
-                    if (equipamento['setor'] != null && equipamento['setor'].toString().isNotEmpty)
+                    _buildInfoRow(Icons.qr_code, 'Código:', codigoEquipamento),
+                    if (equipamento['setor'] != null)
                       _buildInfoRow(Icons.business, 'Setor:', equipamento['setor'].toString()),
-                    if (equipamento['descricao'] != null && equipamento['descricao'].toString().isNotEmpty)
+                    if (equipamento['descricao'] != null)
                       _buildInfoRow(Icons.description, 'Descrição:', equipamento['descricao'].toString()),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+
+            // Seção do QR Code Visível na Tela
+            Center(
+              child: Column(
+                children: [
+                  const Text(
+                    'QR Code do Equipamento',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: QrImageView(
+                      data: codigoEquipamento,
+                      version: QrVersions.auto,
+                      size: 180.0,
+                      backgroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Botão Baixar QR Code
             SizedBox(
               width: double.infinity,
               height: 52,
@@ -91,14 +140,14 @@ class EquipamentoDetalheView extends StatelessWidget {
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Imprimindo QR Code de ${equipamento['nome']}...'),
+                      content: Text('QR Code de "$nomeEquipamento" gerado com sucesso!'),
                       backgroundColor: Colors.green,
                     ),
                   );
                 },
-                icon: const Icon(Icons.print),
+                icon: const Icon(Icons.download),
                 label: const Text(
-                  'Imprimir QR Code',
+                  'Baixar QR Code',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
